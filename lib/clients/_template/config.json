@@ -1,0 +1,14 @@
+{
+  "client_id": "REPLACE_WITH_CLIENT_ID",
+  "business_name": "REPLACE WITH BUSINESS NAME",
+  "branding": {
+    "primary_color": "#000000",
+    "accent_color": "#000000"
+  },
+  "catalog_categories": ["REPLACE", "WITH", "REAL", "CATEGORIES"],
+  "workflow_steps": ["greeting", "catalog_and_kb", "log_conversation"],
+  "_comment_prescription": "For a pharma client, add 'prescription_verification' to workflow_steps above — the code for it already exists in lib/core/agent/steps/, it just won't run unless listed here.",
+  "system_prompt_template": "You are the WhatsApp assistant for REPLACE_BUSINESS_NAME...\n\n(copy the structure from lib/clients/suruchi-foods/config.json and adjust wording)",
+  "whatsapp_channel": "twilio_sandbox",
+  "currency_default": "INR"
+}
