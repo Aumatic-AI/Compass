@@ -23,6 +23,24 @@ export async function createTemplate(params: {
   const wabaId = getEnv("WHATSAPP_WABA_ID");
   const token = getEnv("WHATSAPP_ACCESS_TOKEN");
 
+  // Count how many {{n}} variables exist in the body text
+  const variableMatches = params.bodyText.match(/\{\{\d+\}\}/g) || [];
+  const variableCount = variableMatches.length;
+
+  // Build the BODY component, including an "example" if variables are present
+  const bodyComponent: any = {
+    type: "BODY",
+    text: params.bodyText,
+  };
+
+  if (variableCount > 0) {
+    // Meta requires one example string per variable, in order
+    const examples = Array.from({ length: variableCount }, (_, i) => `Example${i + 1}`);
+    bodyComponent.example = {
+      body_text: [examples],
+    };
+  }
+
   const res = await fetch(
     `https://graph.facebook.com/${GRAPH_VERSION}/${wabaId}/message_templates`,
     {
@@ -35,27 +53,22 @@ export async function createTemplate(params: {
         name: params.name,
         language: params.language,
         category: params.category,
-        components: [
-          {
-            type: "BODY",
-            text: params.bodyText,
-          },
-        ],
+        components: [bodyComponent],
       }),
     }
   );
 
   return res.json();
 }
-
 export async function listTemplates() {
   const wabaId = getEnv("WHATSAPP_WABA_ID");
   const token = getEnv("WHATSAPP_ACCESS_TOKEN");
 
   const res = await fetch(
-    `https://graph.facebook.com/${GRAPH_VERSION}/${wabaId}/message_templates?fields=name,status,category,language,components,rejected_reason`,
+    `https://graph.facebook.com/${GRAPH_VERSION}/${wabaId}/message_templates?fields=name,status,category,language,components,rejected_reason&limit=100`,
     {
       headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
     }
   );
 
@@ -98,6 +111,20 @@ export async function sendTemplateMessage(params: {
           ...(components.length ? { components } : {}),
         },
       }),
+    }
+  );
+
+  return res.json();
+}
+export async function deleteTemplate(name: string) {
+  const wabaId = getEnv("WHATSAPP_WABA_ID");
+  const token = getEnv("WHATSAPP_ACCESS_TOKEN");
+
+  const res = await fetch(
+    `https://graph.facebook.com/${GRAPH_VERSION}/${wabaId}/message_templates?name=${name}`,
+    {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
     }
   );
 

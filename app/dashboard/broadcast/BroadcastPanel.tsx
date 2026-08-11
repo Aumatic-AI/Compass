@@ -370,9 +370,28 @@ export default function BroadcastPanel({
                     </div>
                   )}
                 </div>
-                <span style={{ color: statusColor[t.status] ?? "inherit", fontWeight: 600, fontSize: 13 }}>
-                  {t.status}
-                </span>
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+  <span style={{ color: statusColor[t.status] ?? "inherit", fontWeight: 600, fontSize: 13 }}>
+    {t.status}
+  </span>
+  {t.status === "REJECTED" && (
+    <button
+      className="chip"
+      style={{ cursor: "pointer", fontSize: 12, padding: "4px 10px" }}
+      onClick={async () => {
+        if (!confirm(`Delete rejected template "${t.name}"?`)) return;
+        await fetch("/api/templates/delete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: t.name }),
+        });
+        fetchTemplates();
+      }}
+    >
+      Delete
+    </button>
+  )}
+</div>
               </div>
             ))}
           </div>

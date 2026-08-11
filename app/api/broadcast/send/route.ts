@@ -32,12 +32,7 @@ export async function POST(req: NextRequest) {
     for (const recipient of recipients) {
       try {
         // If the template body has a {{1}} for the customer's name, use it automatically
-        const variables =
-          bodyVariables.length > 0
-            ? bodyVariables
-            : recipient.name
-            ? [recipient.name]
-            : [];
+        const variables = bodyVariables.length > 0 ? bodyVariables : [];
 
         const data = await sendTemplateMessage({
           to: recipient.phone,
