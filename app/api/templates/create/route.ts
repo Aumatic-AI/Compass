@@ -26,13 +26,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: result.error }, { status: 400 });
     }
 
-    return NextResponse.json({ success: true, id: result.id, status: result.status });
-  } catch (err: any) {
     return NextResponse.json({
-  success: true,
-  id: result.id,
-  status: result.status,
-  rejected_reason: result.rejected_reason,
-});
+      success: true,
+      id: result.id,
+      status: result.status,
+      rejected_reason: result.rejected_reason,
+    });
+  } catch (err: any) {
+    return NextResponse.json(
+      { error: err.message || "Failed to create template" },
+      { status: 500 }
+    );
   }
 }

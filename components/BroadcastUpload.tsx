@@ -32,7 +32,7 @@ export default function BroadcastUpload({ onParsed }: BroadcastUploadProps) {
       const rows = XLSX.utils.sheet_to_json<Record<string, string>>(sheet);
 
       const recipients: Recipient[] = rows
-        .map((row) => {
+        .map((row): Recipient | null => {
           const phoneRaw =
             row["phone"] ||
             row["Phone"] ||
