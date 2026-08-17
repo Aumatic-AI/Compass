@@ -47,12 +47,13 @@ export default function CallsPage() {
           onClick={fetchCalls}
           disabled={loading}
           style={{
-            background: 'none',
-            border: '1px solid #374151',
-            color: '#9ca3af',
+            background: '#ffffff',
+            border: '1px solid #e5e7eb',
+            color: '#1f2937',
             fontSize: '13px',
-            padding: '6px 14px',
-            borderRadius: '6px',
+            fontWeight: 600,
+            padding: '8px 16px',
+            borderRadius: '8px',
             cursor: loading ? 'not-allowed' : 'pointer',
           }}
         >
@@ -60,26 +61,29 @@ export default function CallsPage() {
         </button>
       </div>
 
-      {/* Stats strip */}
+      {/* Stats strip — same green-gradient card style as the Overview page */}
       {!loading && !error && (
-        <div style={{ display: 'flex', gap: '12px', padding: '16px 0', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '12px', padding: '16px 20px', flexWrap: 'wrap' }}>
           <StatBox label="Calls today" value={String(callsToday.length)} />
           <StatBox label="Total calls" value={String(calls.length)} />
-          <StatBox label="Avg. duration" value={avgDuration ? `${Math.floor(avgDuration / 60)}:${(avgDuration % 60).toString().padStart(2, '0')}` : '—'} />
+          <StatBox
+            label="Avg. duration"
+            value={avgDuration ? `${Math.floor(avgDuration / 60)}:${(avgDuration % 60).toString().padStart(2, '0')}` : '—'}
+          />
           <StatBox label="Missed / failed" value={String(missedCount)} />
         </div>
       )}
 
       {loading && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '8px 0' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', padding: '16px 20px' }}>
           {[1, 2, 3].map((i) => (
             <div
               key={i}
               style={{
                 height: '56px',
                 borderRadius: '8px',
-                backgroundColor: '#111827',
-                border: '1px solid #1f2937',
+                backgroundColor: '#f0fdf4',
+                border: '1px solid #e5e7eb',
                 animation: 'pulse 1.5s ease-in-out infinite',
               }}
             />
@@ -93,17 +97,17 @@ export default function CallsPage() {
           style={{
             padding: '12px 16px',
             borderRadius: '8px',
-            backgroundColor: '#450a0a',
-            color: '#f87171',
-            border: '1px solid #991b1b',
+            backgroundColor: '#fef2f2',
+            color: '#b91c1c',
+            border: '1px solid #fecaca',
             fontSize: '14px',
-            marginBottom: '16px',
+            margin: '0 20px 16px',
           }}
         >
           {error}{' '}
           <button
             onClick={fetchCalls}
-            style={{ marginLeft: '8px', color: '#fca5a5', textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer' }}
+            style={{ marginLeft: '8px', color: '#b91c1c', textDecoration: 'underline', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer' }}
           >
             Retry
           </button>
@@ -133,17 +137,17 @@ function StatBox({ label, value }: { label: string; value: string }) {
   return (
     <div
       style={{
-        backgroundColor: '#111827',
-        border: '1px solid #1f2937',
-        borderRadius: '8px',
-        padding: '10px 16px',
-        minWidth: '110px',
+        background: 'linear-gradient(155deg, #25d366, #128c7e)',
+        borderRadius: '14px',
+        padding: '14px 20px',
+        minWidth: '130px',
+        boxShadow: '0 4px 14px rgba(18, 140, 126, 0.18)',
       }}
     >
-      <div style={{ fontSize: '11px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+      <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.85)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 700 }}>
         {label}
       </div>
-      <div style={{ fontSize: '20px', fontWeight: 600, color: '#f3f4f6', marginTop: '2px' }}>{value}</div>
+      <div style={{ fontSize: '24px', fontWeight: 800, color: '#ffffff', marginTop: '4px' }}>{value}</div>
     </div>
   );
 }

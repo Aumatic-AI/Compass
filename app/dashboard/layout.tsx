@@ -1,13 +1,16 @@
 import './dashboard.css';
 import './sidebar.css';
+import './dashboard-theme.css';
 import { loadDashboardConfig } from '@/lib/dashboard-config';
 import DashboardSidebar from '@/components/DashboardSidebar';
+import { getConnectedWhatsAppNumber } from '@/lib/whatsapp-number';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const config = loadDashboardConfig();
+  const whatsappNumber = await getConnectedWhatsAppNumber();
 
   return (
     <div
@@ -41,7 +44,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 minute: '2-digit',
               })}
             </div>
-            <div>WhatsApp: {config.whatsappNumber} · Connected</div>
+            <div>WhatsApp: {whatsappNumber} · Connected</div>
           </div>
         </div>
 

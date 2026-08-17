@@ -41,7 +41,8 @@ export async function getCatalogGroups(config: DashboardConfig): Promise<Catalog
 }
 
 // ---------------------------------------------------------------
-// RAW PRODUCTS — powers the editable Catalog Manager (edit/rename/delete).
+// RAW PRODUCTS — powers the editable Catalog Manager (edit/rename/delete)
+// and the WhatsApp Commerce catalog feed.
 // ---------------------------------------------------------------
 
 export type RawProduct = {
@@ -53,6 +54,7 @@ export type RawProduct = {
   price: number | null;
   currency: string | null;
   available: boolean;
+  image_url: string | null;
 };
 
 export async function getRawProducts(): Promise<RawProduct[]> {
@@ -189,9 +191,6 @@ export function getMockBroadcast() {
 }
 
 // ---------------------------------------------------------------
-// CALLS — MOCK / DEMO ONLY.
-// ---------------------------------------------------------------
-// ---------------------------------------------------------------
 // CALLS — REAL, from ElevenLabs Conversational AI conversation history.
 // ---------------------------------------------------------------
 
@@ -254,14 +253,12 @@ export async function getRealCalls(): Promise<CallRecord[]> {
   const data = await res.json();
   const conversations = data.conversations || [];
 
-  // Pull customer names from Supabase to match against caller phone numbers
   const { data: customers } = await supabase.from('customers').select('phone, full_name');
   const nameByPhone = new Map<string, string>();
   (customers || []).forEach((c) => {
     if (c.phone) nameByPhone.set(c.phone.replace(/\D/g, ''), c.full_name || c.phone);
   });
 
-  // Fetch details for each conversation in parallel to get the caller's phone number
   const detailed = await Promise.all(
     conversations.map(async (c: any) => {
       let phone = 'Unknown number';

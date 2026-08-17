@@ -12,7 +12,7 @@ import {
 import { DashboardConfig } from '@/lib/dashboard-config/types';
 
 const emptyForm: ProductFields = {
-  name: '', category: '', pack_size: '', order_type: '', price: null, currency: 'INR',
+  name: '', category: '', pack_size: '', order_type: '', price: null, currency: 'INR', image_url: '',
 };
 
 function cleanForm(f: ProductFields): ProductFields {
@@ -23,6 +23,7 @@ function cleanForm(f: ProductFields): ProductFields {
     pack_size: f.pack_size.trim(),
     order_type: f.order_type.trim(),
     currency: f.currency.trim() || 'INR',
+    image_url: f.image_url.trim(),
   };
 }
 
@@ -54,10 +55,6 @@ export default function CatalogManager({
       .join(' · ');
   }
 
-  // Group by a normalized (trimmed, lowercased) key so "Sweets", "sweets ",
-  // and "SWEETS" all land in the same group — only the display label
-  // (from whichever product was added first) is shown, and the CSS
-  // already uppercases it for display anyway.
   const groups = new Map<string, { label: string; items: RawProduct[] }>();
   for (const p of products) {
     const raw = String((p as any)[config.catalogGroupBy] || 'Uncategorized').trim();
@@ -75,6 +72,7 @@ export default function CatalogManager({
       order_type: p.order_type || '',
       price: p.price,
       currency: p.currency || 'INR',
+      image_url: p.image_url || '',
     });
   }
 
@@ -134,6 +132,12 @@ export default function CatalogManager({
             onChange={(e) => setAddForm({ ...addForm, price: e.target.value === '' ? null : Number(e.target.value) })}
           />
           <input placeholder="Currency (INR/USD)" value={addForm.currency} onChange={(e) => setAddForm({ ...addForm, currency: e.target.value })} />
+          <input
+            placeholder="Image URL (copy from your website)"
+            value={addForm.image_url}
+            onChange={(e) => setAddForm({ ...addForm, image_url: e.target.value })}
+            style={{ minWidth: 260 }}
+          />
           <div className="cat-edit-actions">
             <button className="btn-pill btn-pill-sm" onClick={handleAdd} disabled={isPending || !addForm.name.trim()}>
               {isPending ? 'Adding…' : 'Add Product'}
@@ -151,6 +155,25 @@ export default function CatalogManager({
           {group.items.map((p) => (
             <div key={p.id}>
               <div className="cat-item">
+                {p.image_url ? (
+                  <img
+                    src={p.image_url}
+                    alt={p.name}
+                    style={{ width: 40, height: 40, borderRadius: 8, objectFit: 'cover', flexShrink: 0, marginRight: 12 }}
+                  />
+                ) : (
+                  <div
+                    title="No image yet — add one so this product can appear in the WhatsApp catalog"
+                    style={{
+                      width: 40, height: 40, borderRadius: 8, flexShrink: 0, marginRight: 12,
+                      background: '#fef2f2', border: '1px dashed #fecaca',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      fontSize: 16, color: '#dc2626',
+                    }}
+                  >
+                    ?
+                  </div>
+                )}
                 <div className="cat-info">
                   <span className="cat-name">{p.name}</span>
                   <span className="cat-meta">{buildMeta(p)}</span>
@@ -183,6 +206,12 @@ export default function CatalogManager({
                     onChange={(e) => setForm({ ...form, price: e.target.value === '' ? null : Number(e.target.value) })}
                   />
                   <input placeholder="Currency (INR/USD)" value={form.currency} onChange={(e) => setForm({ ...form, currency: e.target.value })} />
+                  <input
+                    placeholder="Image URL (copy from your website)"
+                    value={form.image_url}
+                    onChange={(e) => setForm({ ...form, image_url: e.target.value })}
+                    style={{ minWidth: 260 }}
+                  />
                   <div className="cat-edit-actions">
                     <button className="btn-pill btn-pill-sm" onClick={() => saveEdit(p.id)} disabled={isPending}>
                       {isPending ? 'Saving…' : 'Save'}

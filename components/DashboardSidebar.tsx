@@ -33,8 +33,20 @@ export default function DashboardSidebar({
   // panel toggle since every client with an AI agent needs it.
   items.push({ href: '/dashboard/agent-settings', label: 'AgentBrain', icon: '⚙' });
 
+  async function handleLogout() {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } finally {
+      window.location.href = '/login';
+    }
+  }
+
+  // No manual collapse toggle — the sidebar is icon-only by default and
+  // expands automatically on hover (pure CSS, see .dash-sidebar:hover
+  // in dashboard-theme.css). Labels always render in the DOM so the
+  // hover expansion is instant with no layout jump.
   return (
-    <div className="dash-sidebar">
+    <div className="dash-sidebar auto-collapse">
       <div className="sidebar-logo-row">
         <div className="sidebar-logo-mark">{initial}</div>
         <div className="sidebar-logo-name">{shortName}</div>
@@ -50,11 +62,16 @@ export default function DashboardSidebar({
               className={`side-nav-item${isActive ? ' active' : ''}`}
             >
               <span className="side-nav-icon-tile">{item.icon}</span>
-              {item.label}
+              <span className="side-nav-label">{item.label}</span>
             </Link>
           );
         })}
       </nav>
+
+      <button type="button" onClick={handleLogout} className="side-nav-item side-nav-logout">
+        <span className="side-nav-icon-tile">⎋</span>
+        <span className="side-nav-label">Logout</span>
+      </button>
     </div>
   );
 }

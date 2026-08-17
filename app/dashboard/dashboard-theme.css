@@ -1,0 +1,227 @@
+/* ============================================================
+   dashboard-theme.css  — v5 (the real fix)
+
+   ROOT CAUSE FOUND: dashboard.css sets --ink, --card, --surface2,
+   --line, --ink-soft, --red, --pending-bg etc DIRECTLY on
+   .dash-page-bg (the wrapper around your whole dashboard) —
+   scoped to the old dark theme (--ink was near-white, meant to
+   sit on a near-black --cream background).
+
+   Every previous version of this file redefined those same names
+   at :root instead. Since .dash-page-bg is a descendant of html
+   AND re-declares --ink itself, .dash-page-bg's own value always
+   wins for everything inside it — no amount of !important on the
+   `color` property fixes this, because the *variable* it pointed
+   to was still wrong.
+
+   FIX: redefine the variables on .dash-page-bg itself — the exact
+   same selector dashboard.css uses — so every existing rule in
+   dashboard.css (and everything added here) resolves correctly,
+   automatically, with almost no per-class overrides needed.
+
+   BONUS: --maroon / --maroon-dark / --saffron aren't in
+   dashboard.css at all — they only exist as an inline style set
+   in layout.tsx from your config file. Forcing them here with
+   !important means you no longer need to manually edit
+   suruchi-foods.ts at all — this file alone guarantees WhatsApp
+   green everywhere, regardless of what's in that config.
+
+   INSTALL: save at app/dashboard/dashboard-theme.css, overwriting
+   the previous version.
+   ============================================================ */
+
+.dash-page-bg {
+  /* ---- Variables dashboard.css already defines on this same
+     selector — redefining them here, later in the cascade, flips
+     every existing rule in dashboard.css to the light theme. ---- */
+  --cream: #f4f6f5 !important;
+  --card: #ffffff !important;
+  --surface2: #f0fdf4 !important;
+  --ink: #1f2937 !important;
+  --ink-soft: #6b7280 !important;
+  --line: #e5e7eb !important;
+  --green: #16a34a !important;
+  --amber: #b45309 !important;
+  --red: #dc2626 !important;
+  --paid-bg: #f0fdf4 !important;
+  --pending-bg: #fef2f2 !important;
+  --shipped-bg: #fffbeb !important;
+
+  /* ---- Variables dashboard.css does NOT define — these only
+     exist as an inline style (from your config file's
+     theme.primary / primaryDark / accent). !important is required
+     here specifically to beat that inline style. This removes the
+     need to ever hand-edit the config file for colors. ---- */
+  --maroon: #25d366 !important;
+  --maroon-dark: #128c7e !important;
+  --saffron: #128c7e !important;
+
+  /* Extra names used by a couple of my own added classes below */
+  --wa-green: #25d366;
+  --wa-green-dark: #128c7e;
+  --wa-green-tint: #f0fdf4;
+
+  background: var(--cream) !important;
+}
+
+/* ---------- Safety net for anything still resolved before the
+   variables above take effect (e.g. inline styles that reference
+   a variable value baked in at build time rather than at paint
+   time — rare, but cheap insurance). ---------- */
+.dash-page-bg *:not(:disabled) { opacity: 1 !important; }
+
+/* ---------- Layout niceties dashboard.css doesn't cover -------- */
+.dash-main { min-width: 0; }
+.dash-content { display: flex; flex-direction: column; gap: 18px; }
+.footnote { color: var(--ink-soft) !important; }
+
+/* ---------- Sidebar — icon-only, auto-expand on hover ----------
+   (dashboard.css has no rules for the sidebar at all — this part
+   is fully custom, unrelated to the variable-shadowing bug.) */
+.dash-sidebar {
+  background: #ffffff !important;
+  border-right: 1px solid var(--line);
+  transition: width 0.16s ease;
+  overflow: hidden;
+  z-index: 40;
+}
+.sidebar-logo-mark { background: linear-gradient(160deg, var(--wa-green), var(--wa-green-dark)) !important; color: #fff !important; }
+.sidebar-logo-name { color: var(--ink) !important; white-space: nowrap; }
+.side-nav-item { color: var(--ink-soft) !important; white-space: nowrap; text-decoration: none; display: flex; align-items: center; gap: 12px; padding: 11px 12px; border-radius: 9px; font-size: 13px; font-weight: 600; }
+.side-nav-item:hover { background: var(--wa-green-tint) !important; color: var(--wa-green-dark) !important; }
+.side-nav-item:active { background: #dcfce7 !important; }
+.side-nav-item.active { background: var(--wa-green) !important; color: #ffffff !important; box-shadow: 0 2px 8px rgba(37, 211, 102, 0.28); }
+.side-nav-icon-tile { width: 26px; height: 26px; border-radius: 7px; background: var(--wa-green-tint); color: var(--wa-green-dark) !important; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; }
+.side-nav-item.active .side-nav-icon-tile { background: rgba(255,255,255,0.22) !important; color: #fff !important; }
+.side-nav { display: flex; flex-direction: column; gap: 6px; }
+.sidebar-logo-row { display: flex; align-items: center; gap: 10px; padding: 2px 6px 16px; margin-bottom: 14px; border-bottom: 1px solid var(--line); }
+
+.dash-sidebar { display: flex; flex-direction: column; height: 100vh; position: sticky; top: 0; align-self: flex-start; }
+.side-nav-logout {
+  margin-top: auto;
+  border: none;
+  background: none;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+}
+.side-nav-logout:hover { background: #fef2f2 !important; color: #b91c1c !important; }
+.side-nav-logout:hover .side-nav-icon-tile { background: #fee2e2 !important; color: #b91c1c !important; }
+
+.dash-sidebar.auto-collapse { width: 72px; padding: 20px 10px; }
+.dash-sidebar.auto-collapse .sidebar-logo-row { justify-content: center; padding: 2px 0 16px; }
+.dash-sidebar.auto-collapse .sidebar-logo-name,
+.dash-sidebar.auto-collapse .side-nav-label { display: inline-block; width: 0; opacity: 0 !important; overflow: hidden; }
+.dash-sidebar.auto-collapse .side-nav-item { justify-content: center; padding: 11px 0; }
+.dash-sidebar.auto-collapse .side-nav-icon-tile { width: 30px; height: 30px; font-size: 15px; }
+.dash-sidebar.auto-collapse:hover { width: 220px; padding: 20px 14px; box-shadow: 4px 0 16px rgba(0,0,0,0.06); }
+.dash-sidebar.auto-collapse:hover .sidebar-logo-row { justify-content: flex-start; padding: 2px 6px 16px; }
+.dash-sidebar.auto-collapse:hover .sidebar-logo-name,
+.dash-sidebar.auto-collapse:hover .side-nav-label { width: auto; opacity: 1 !important; overflow: visible; transition: opacity 0.12s ease 0.04s; }
+.dash-sidebar.auto-collapse:hover .side-nav-item { justify-content: flex-start; padding: 11px 12px; }
+.dash-sidebar.auto-collapse:hover .side-nav-icon-tile { width: 26px; height: 26px; font-size: 13px; }
+
+/* ---------- Table header — dark green instead of the dark-navy
+   dashboard.css default, now that --surface2 alone would already
+   be a light tint (this is just a deliberate style choice) ------ */
+.dash-page-bg thead th {
+  background: var(--wa-green-dark) !important;
+  color: #ffffff !important;
+}
+.dash-page-bg tbody tr:hover { background: var(--wa-green-tint) !important; }
+.dash-page-bg .chat-item:hover,
+.dash-page-bg .chat-item:focus-within,
+.dash-page-bg .chat-item:active { background: var(--wa-green-tint) !important; }
+.dash-page-bg .cat-item:hover { background: var(--wa-green-tint) !important; }
+
+/* Toggle switches on the Catalog page */
+.dash-page-bg .switch { background: var(--wa-green) !important; }
+.dash-page-bg .switch.off { background: #d1d5db !important; }
+
+/* Conversation flags */
+.dash-page-bg .flag.ai { background: var(--wa-green-tint) !important; color: var(--wa-green-dark) !important; }
+
+/* ---------- Broadcast: View Template button + preview modal ---- */
+.template-row { display: flex; gap: 10px; align-items: stretch; }
+.template-row input, .template-row .fake-select { flex: 1; }
+.view-template-btn { flex-shrink: 0; background: #ffffff !important; border: 1px solid var(--wa-green); color: var(--wa-green-dark) !important; font-weight: 700; font-size: 13px; border-radius: 8px; padding: 0 16px; cursor: pointer; white-space: nowrap; }
+.view-template-btn:hover { background: var(--wa-green-tint) !important; }
+.view-template-btn:disabled { opacity: 0.5 !important; cursor: not-allowed; }
+
+.template-modal-overlay { position: fixed; inset: 0; background: rgba(15,23,30,0.45); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+.template-modal { background: #ffffff !important; border-radius: 16px; width: 100%; max-width: 420px; max-height: 85vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.25); }
+.template-modal-head { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px; border-bottom: 1px solid var(--line); }
+.template-modal-head h3 { margin: 0; font-size: 15px; color: var(--ink) !important; }
+.template-modal-close { background: none; border: none; font-size: 20px; line-height: 1; color: var(--ink-soft) !important; cursor: pointer; padding: 2px 6px; }
+.wa-preview-frame { background: #e5ded6; padding: 24px 16px; min-height: 180px; display: flex; align-items: flex-start; }
+.wa-bubble { background: #ffffff !important; color: #111b21 !important; border-radius: 8px 8px 8px 2px; padding: 10px 12px 8px; max-width: 88%; font-size: 14px; line-height: 1.45; box-shadow: 0 1px 1px rgba(0,0,0,0.08); white-space: pre-wrap; word-break: break-word; }
+.wa-bubble-time { display: block; text-align: right; font-size: 11px; color: rgba(0,0,0,0.45) !important; margin-top: 4px; }
+.template-modal-meta { padding: 14px 20px 20px; font-size: 12px; color: var(--ink-soft) !important; border-top: 1px solid var(--line); }
+.template-modal-note { padding: 14px 20px; font-size: 13px; color: var(--ink-soft) !important; font-style: italic; }
+
+/* ---------- Generic form controls ------------------------------- */
+input, textarea, select {
+  background: #ffffff !important; border: 1px solid var(--line); color: var(--ink) !important; border-radius: 8px;
+}
+input:focus, textarea:focus, select:focus {
+  outline: none; border-color: var(--wa-green); box-shadow: 0 0 0 3px rgba(37,211,102,0.12);
+}
+
+/* ---------- AgentBrain (agent-settings) page — fully custom,
+   dashboard.css has no rules for these classes at all ----------- */
+.panel-head { gap: 14px; }
+.ab-summary-card { border-radius: 14px; }
+.ab-summary-card .ab-summary-grid { background: var(--line); }
+.ab-summary-card .ab-summary-item { padding: 14px 20px; }
+.ab-page { background: var(--cream) !important; min-height: 100vh; padding: 32px 24px; }
+.ab-wrap { max-width: 880px; margin: 0 auto; }
+.ab-eyebrow { color: var(--wa-green-dark) !important; font-size: 12px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 6px; }
+.ab-title { font-size: 28px; font-weight: 800; color: var(--ink) !important; margin: 0 0 4px; }
+.ab-subtitle { color: var(--ink-soft) !important; font-size: 14px; margin-bottom: 28px; }
+.ab-status { margin-bottom: 20px; padding: 12px 16px; border-radius: 10px; font-size: 14px; border: 1px solid; }
+.ab-status.success { background: #f0fdf4 !important; color: #15803d !important; border-color: #bbf7d0; }
+.ab-status.error { background: #fef2f2 !important; color: #b91c1c !important; border-color: #fecaca; }
+.ab-card { background: #ffffff !important; border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; color: var(--ink) !important; }
+.ab-section { margin-bottom: 26px; }
+.ab-label { display: block; font-size: 13px; font-weight: 700; color: var(--ink) !important; margin-bottom: 8px; }
+.ab-help { font-size: 12px; color: var(--ink-soft) !important; margin-top: 8px; }
+.ab-select { width: 100%; padding: 12px 14px; font-size: 14px; cursor: pointer; }
+.ab-textarea { width: 100%; min-height: 320px; padding: 14px 16px; font-size: 13px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; line-height: 1.6; resize: vertical; box-sizing: border-box; }
+.ab-btn-primary { background: var(--wa-green) !important; color: #fff !important; font-weight: 700; padding: 12px 22px; border-radius: 9px; font-size: 14px; border: none; cursor: pointer; }
+.ab-btn-primary:hover:not(:disabled) { background: var(--wa-green-dark) !important; }
+.ab-btn-primary:disabled { background: #d1d5db !important; color: #9ca3af !important; cursor: not-allowed; }
+.ab-btn-secondary { display: inline-block; background: #ffffff !important; border: 1px solid var(--wa-green); color: var(--wa-green-dark) !important; font-weight: 700; padding: 10px 18px; border-radius: 9px; font-size: 13px; cursor: pointer; }
+.ab-btn-secondary:hover { background: var(--wa-green-tint) !important; }
+.ab-kb-doc { display: flex; align-items: center; justify-content: space-between; background: #ffffff !important; border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; }
+.ab-kb-doc + .ab-kb-doc { margin-top: 8px; }
+.ab-kb-doc-name { font-size: 14px; color: var(--ink) !important; font-weight: 500; }
+.ab-kb-delete { background: none; border: 1px solid #fecaca; color: #dc2626 !important; font-size: 12px; font-weight: 600; padding: 5px 12px; border-radius: 7px; cursor: pointer; }
+.ab-kb-delete:hover:not(:disabled) { background: #fef2f2 !important; }
+.ab-kb-delete:disabled { color: var(--ink-soft) !important; border-color: var(--line); cursor: not-allowed; }
+.ab-section-heading { font-size: 16px; font-weight: 700; color: var(--ink) !important; margin: 0 0 4px; }
+.ab-section-divider { margin-top: 40px; padding-top: 28px; border-top: 1px solid var(--line); }
+.ab-summary-card { margin-top: 40px; background: #ffffff !important; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.ab-summary-head { background: var(--wa-green-tint) !important; padding: 14px 20px; border-bottom: 1px solid var(--line); font-size: 14px; font-weight: 700; color: var(--wa-green-dark) !important; }
+.ab-summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1px; background: var(--line); }
+.ab-summary-item { background: #ffffff !important; padding: 16px 20px; }
+.ab-summary-item-label { font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-soft) !important; margin-bottom: 6px; }
+.ab-summary-item-value { font-size: 14px; font-weight: 600; color: var(--ink) !important; }
+.ab-summary-pill { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: #15803d !important; }
+.ab-summary-pill::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: #22c55e; }
+
+/* ---------- Responsive ------------------------------------------- */
+@media (max-width: 900px) {
+  .grid { grid-template-columns: 1fr; }
+  .dash-sidebar.auto-collapse { width: 100%; }
+  .dash-sidebar.auto-collapse:hover { width: 100%; }
+  .template-row { flex-direction: column; }
+  .view-template-btn { width: 100%; padding: 12px; }
+  .ab-summary-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 520px) {
+  .ab-page { padding: 20px 14px; }
+  .ab-summary-grid { grid-template-columns: 1fr; }
+  .topbar { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .topbar-meta { text-align: left; }
+}

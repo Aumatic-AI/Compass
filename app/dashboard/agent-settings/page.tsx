@@ -35,6 +35,7 @@ export default function AgentSettingsPage() {
 
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [statusType, setStatusType] = useState<'success' | 'error' | null>(null);
+  const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
 
   useEffect(() => {
     fetchAgentSettings();
@@ -68,7 +69,6 @@ export default function AgentSettingsPage() {
       if (!res.ok) throw new Error(data.error || 'Failed to load voices');
       setVoices(data.voices || []);
     } catch (err: any) {
-      // Non-critical — voice list failing shouldn't block the whole page
       console.error('Could not load voices:', err.message);
     }
   }
@@ -87,6 +87,9 @@ export default function AgentSettingsPage() {
 
       setStatusType('success');
       setStatusMessage('Agent updated successfully.');
+      setLastSavedAt(
+        new Date().toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: 'numeric', minute: '2-digit' })
+      );
     } catch (err: any) {
       setStatusType('error');
       setStatusMessage(err.message || 'Something went wrong while saving.');
@@ -115,7 +118,7 @@ export default function AgentSettingsPage() {
 
       setStatusType('success');
       setStatusMessage(`"${file.name}" added to the agent's knowledge base.`);
-      await fetchAgentSettings(); // refresh the list
+      await fetchAgentSettings();
     } catch (err: any) {
       setStatusType('error');
       setStatusMessage(err.message || 'Something went wrong during upload.');
@@ -133,9 +136,7 @@ export default function AgentSettingsPage() {
     setStatusMessage(null);
 
     try {
-      const res = await fetch(`/api/agent-settings/knowledge-base?id=${docId}`, {
-        method: 'DELETE',
-      });
+      const res = await fetch(`/api/agent-settings/knowledge-base?id=${docId}`, { method: 'DELETE' });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Delete failed');
 
@@ -150,201 +151,98 @@ export default function AgentSettingsPage() {
     }
   }
 
-  // ---------- shared inline style tokens ----------
-  const cardStyle: React.CSSProperties = {
-    backgroundColor: '#111827',
-    border: '1px solid #1f2937',
-    borderRadius: '8px',
-    padding: '12px 16px',
-  };
-  const labelStyle: React.CSSProperties = {
-    display: 'block',
-    fontSize: '14px',
-    color: '#9ca3af',
-    marginBottom: '8px',
-  };
-  const buttonPrimary: React.CSSProperties = {
-    backgroundColor: '#2563eb',
-    color: '#fff',
-    fontWeight: 500,
-    padding: '10px 20px',
-    borderRadius: '8px',
-    fontSize: '14px',
-    border: 'none',
-    cursor: 'pointer',
-  };
-  const buttonSecondary: React.CSSProperties = {
-    backgroundColor: '#111827',
-    border: '1px solid #374151',
-    color: '#fff',
-    fontWeight: 500,
-    padding: '10px 20px',
-    borderRadius: '8px',
-    fontSize: '14px',
-    cursor: 'pointer',
-    display: 'inline-block',
-  };
+  const selectedVoiceName = voices.find((v) => v.voice_id === voiceId)?.name || voiceId || '—';
+
+  if (loading) {
+    return (
+      <div className="panel">
+        <div className="panel-head">
+          <div>
+            <div className="panel-title">AgentBrain</div>
+            <div className="panel-sub">Loading agent settings…</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#000', color: '#fff', padding: '32px' }}>
-      <div style={{ maxWidth: '760px', margin: '0 auto' }}>
-        <p style={{ color: '#60a5fa', fontSize: '12px', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '4px' }}>
-          Compass &middot; AgentBrain
-        </p>
-        <h1 style={{ fontSize: '30px', marginBottom: '4px', fontWeight: 700 }}>
-          {agentName || 'AI Agent'}
-        </h1>
-        <p style={{ color: '#9ca3af', fontSize: '14px', marginBottom: '32px' }}>
-          Manage how your AI agent talks and what it knows &mdash; used for
-          both WhatsApp chat and voice calls.
-        </p>
+    <>
+      {statusMessage && (
+        <div className={`ab-status ${statusType === 'success' ? 'success' : 'error'}`}>{statusMessage}</div>
+      )}
 
-        {loading ? (
-          <p style={{ color: '#6b7280' }}>Loading agent settings&hellip;</p>
-        ) : (
-          <>
-            {statusMessage && (
-              <div
-                style={{
-                  marginBottom: '24px',
-                  padding: '12px 16px',
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  backgroundColor: statusType === 'success' ? '#052e16' : '#450a0a',
-                  color: statusType === 'success' ? '#4ade80' : '#f87171',
-                  border: `1px solid ${statusType === 'success' ? '#166534' : '#991b1b'}`,
-                }}
-              >
-                {statusMessage}
+      <div className="grid">
+        {/* ---------- Main column: behavior, instructions, knowledge base ---------- */}
+        <div className="col">
+          <div className="panel">
+            <div className="panel-head">
+              <div>
+                <div className="panel-title">{agentName || 'AI Agent'}</div>
+                <div className="panel-sub">Agent behavior — greeting and voice, used on both chat and calls</div>
               </div>
-            )}
-
-            {/* First message (read-only preview) */}
-            {firstMessage && (
-              <div style={{ marginBottom: '24px' }}>
-                <label style={labelStyle}>First message customers hear</label>
-                <div style={{ ...cardStyle, color: '#d1d5db', fontSize: '14px' }}>
-                  {firstMessage}
-                </div>
-              </div>
-            )}
-
-            {/* Voice selector */}
-            <div style={{ marginBottom: '24px' }}>
-              <label style={labelStyle}>Voice</label>
-              <select
-                value={voiceId}
-                onChange={(e) => setVoiceId(e.target.value)}
-                style={{
-                  ...cardStyle,
-                  width: '100%',
-                  color: '#f3f4f6',
-                  fontSize: '14px',
-                  cursor: 'pointer',
-                }}
-              >
-                {voices.length === 0 && <option value={voiceId}>{voiceId || 'Loading voices...'}</option>}
-                {voices.map((v) => (
-                  <option key={v.voice_id} value={v.voice_id} style={{ backgroundColor: '#111827' }}>
-                    {v.name}
-                  </option>
-                ))}
-              </select>
-              <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '8px' }}>
-                Changes how the agent sounds on voice calls. Click &quot;Save
-                Changes&quot; below to apply it.
-              </p>
             </div>
-
-            {/* System prompt editor */}
-            <div style={{ marginBottom: '24px' }}>
-              <label style={labelStyle}>Agent instructions (system prompt)</label>
-              <textarea
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                rows={18}
-                placeholder="Agent instructions..."
-                style={{
-                  width: '100%',
-                  backgroundColor: '#111827',
-                  border: '1px solid #1f2937',
-                  borderRadius: '8px',
-                  padding: '12px 16px',
-                  fontSize: '13px',
-                  color: '#f3f4f6',
-                  fontFamily: 'monospace',
-                  lineHeight: '1.6',
-                  resize: 'vertical',
-                  boxSizing: 'border-box',
-                  outline: 'none',
-                }}
-              />
-              <p style={{ fontSize: '12px', color: '#6b7280', marginTop: '8px' }}>
-                This controls how the agent greets customers, what products
-                it knows about, and how it answers questions &mdash; on both
-                WhatsApp chat and voice calls. Changes only take effect after
-                you click &quot;Save Changes&quot;.
-              </p>
-            </div>
-
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              style={{
-                ...buttonPrimary,
-                backgroundColor: saving ? '#374151' : '#2563eb',
-                cursor: saving ? 'not-allowed' : 'pointer',
-              }}
-            >
-              {saving ? 'Saving...' : 'Save Changes'}
-            </button>
-
-            {/* Knowledge base */}
-            <div style={{ marginTop: '48px', paddingTop: '32px', borderTop: '1px solid #1f2937' }}>
-              <h2 style={{ fontSize: '18px', fontWeight: 500, marginBottom: '4px' }}>Knowledge Base</h2>
-              <p style={{ color: '#9ca3af', fontSize: '14px', marginBottom: '16px' }}>
-                Documents the agent references when answering questions.
-                Upload PDF, TXT, DOCX, HTML, EPUB, or Markdown, up to 20MB.
-              </p>
-
-              {/* List of currently attached documents */}
-              {knowledgeBase.length > 0 && (
-                <div style={{ marginBottom: '16px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  {knowledgeBase.map((doc) => (
-                    <div
-                      key={doc.id}
-                      style={{
-                        ...cardStyle,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                      }}
-                    >
-                      <span style={{ color: '#d1d5db', fontSize: '14px' }}>{doc.name}</span>
-                      <button
-                        onClick={() => handleDeleteDocument(doc.id, doc.name)}
-                        disabled={deletingId === doc.id}
-                        style={{
-                          background: 'none',
-                          border: '1px solid #7f1d1d',
-                          color: deletingId === doc.id ? '#6b7280' : '#f87171',
-                          fontSize: '12px',
-                          padding: '4px 10px',
-                          borderRadius: '6px',
-                          cursor: deletingId === doc.id ? 'not-allowed' : 'pointer',
-                        }}
-                      >
-                        {deletingId === doc.id ? 'Removing...' : 'Delete'}
-                      </button>
-                    </div>
-                  ))}
+            <div className="bc-body">
+              {firstMessage && (
+                <div>
+                  <div className="field-label" style={{ marginBottom: 8 }}>
+                    First message customers hear
+                  </div>
+                  <div className="ab-card">{firstMessage}</div>
                 </div>
               )}
 
+              <div>
+                <div className="field-label" style={{ marginBottom: 8 }}>
+                  Voice
+                </div>
+                <select className="ab-select ab-card" value={voiceId} onChange={(e) => setVoiceId(e.target.value)}>
+                  {voices.length === 0 && <option value={voiceId}>{voiceId || 'Loading voices...'}</option>}
+                  {voices.map((v) => (
+                    <option key={v.voice_id} value={v.voice_id}>
+                      {v.name}
+                    </option>
+                  ))}
+                </select>
+                <div className="ab-help">Changes how the agent sounds on voice calls. Save below to apply.</div>
+              </div>
+
+              <button className="ab-btn-primary" onClick={handleSave} disabled={saving} style={{ alignSelf: 'flex-start' }}>
+                {saving ? 'Saving...' : 'Save Changes'}
+              </button>
+            </div>
+          </div>
+
+          <div className="panel">
+            <div className="panel-head">
+              <div>
+                <div className="panel-title">Agent Instructions</div>
+                <div className="panel-sub">The system prompt — what it knows and how it should answer</div>
+              </div>
+            </div>
+            <div className="bc-body">
+              <textarea
+                className="ab-textarea ab-card"
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                rows={16}
+                placeholder="Agent instructions..."
+              />
+              <div className="ab-help">
+                Controls greeting, product knowledge, and how questions get answered — on WhatsApp chat and voice
+                calls. Changes take effect only after "Save Changes" above.
+              </div>
+            </div>
+          </div>
+
+          <div className="panel">
+            <div className="panel-head">
+              <div>
+                <div className="panel-title">Knowledge Base</div>
+                <div className="panel-sub">Documents the agent references when answering — PDF, TXT, DOCX, HTML, EPUB, or Markdown, up to 20MB</div>
+              </div>
               <label style={{ display: 'inline-block' }}>
-                <span style={buttonSecondary}>
-                  {uploading ? 'Uploading...' : '+ Upload Document'}
-                </span>
+                <span className="ab-btn-secondary">{uploading ? 'Uploading...' : '+ Upload Document'}</span>
                 <input
                   type="file"
                   accept=".pdf,.txt,.docx,.html,.epub,.md"
@@ -354,9 +252,74 @@ export default function AgentSettingsPage() {
                 />
               </label>
             </div>
-          </>
-        )}
+            {knowledgeBase.length > 0 ? (
+              <div className="bc-body" style={{ paddingTop: 16 }}>
+                {knowledgeBase.map((doc) => (
+                  <div key={doc.id} className="ab-kb-doc">
+                    <span className="ab-kb-doc-name">{doc.name}</span>
+                    <button
+                      className="ab-kb-delete"
+                      onClick={() => handleDeleteDocument(doc.id, doc.name)}
+                      disabled={deletingId === doc.id}
+                    >
+                      {deletingId === doc.id ? 'Removing...' : 'Delete'}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="demo-note">No documents uploaded yet.</div>
+            )}
+          </div>
+        </div>
+
+        {/* ---------- Side column: live summary ---------- */}
+        <div className="col">
+          <div className="ab-summary-card" style={{ marginTop: 0 }}>
+            <div className="ab-summary-head">Agent Summary</div>
+            <div className="ab-summary-grid" style={{ gridTemplateColumns: '1fr' }}>
+              <div className="ab-summary-item">
+                <div className="ab-summary-item-label">Status</div>
+                <div className="ab-summary-item-value">
+                  <span className="ab-summary-pill">Active</span>
+                </div>
+              </div>
+              <div className="ab-summary-item">
+                <div className="ab-summary-item-label">Voice</div>
+                <div className="ab-summary-item-value">{selectedVoiceName}</div>
+              </div>
+              <div className="ab-summary-item">
+                <div className="ab-summary-item-label">Knowledge Base</div>
+                <div className="ab-summary-item-value">
+                  {knowledgeBase.length} document{knowledgeBase.length === 1 ? '' : 's'}
+                </div>
+              </div>
+              <div className="ab-summary-item">
+                <div className="ab-summary-item-label">First Message</div>
+                <div className="ab-summary-item-value">{firstMessage ? `${firstMessage.length} chars` : '—'}</div>
+              </div>
+              <div className="ab-summary-item">
+                <div className="ab-summary-item-label">Last Updated</div>
+                <div className="ab-summary-item-value">{lastSavedAt || 'Not saved this session'}</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="panel">
+            <div className="panel-head">
+              <div>
+                <div className="panel-title">Quick Tips</div>
+              </div>
+            </div>
+            <div className="bc-body" style={{ gap: 10 }}>
+              <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>✓ Use clear steps and rules</div>
+              <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>✓ Add a product list or knowledge base</div>
+              <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>✓ Avoid making up information</div>
+              <div style={{ fontSize: 13, color: 'var(--ink-soft)' }}>✓ Keep responses short and helpful</div>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

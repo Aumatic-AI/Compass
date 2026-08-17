@@ -10,6 +10,7 @@ export type ProductFields = {
   order_type: string;
   price: number | null;
   currency: string;
+  image_url: string;
 };
 
 export async function createProductAction(fields: ProductFields) {
