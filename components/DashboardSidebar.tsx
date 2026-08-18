@@ -32,6 +32,7 @@ export default function DashboardSidebar({
   // Agent Settings is always shown — it's not tied to a client config
   // panel toggle since every client with an AI agent needs it.
   items.push({ href: '/dashboard/agent-settings', label: 'AgentBrain', icon: '⚙' });
+  items.push({ href: '/dashboard/settings', label: 'Settings', icon: '⚙' });
 
   async function handleLogout() {
     try {
