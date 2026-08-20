@@ -49,8 +49,6 @@ export default async function DashboardLayout({ children }: { children: React.Re
         </div>
 
         <div className="dash-content">{children}</div>
-
-        <div className="footnote">{config.brandName} — WhatsApp Automation Dashboard</div>
       </div>
     </div>
   );

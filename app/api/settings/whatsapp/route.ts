@@ -28,6 +28,14 @@ export async function POST(req: Request) {
     whatsapp_phone_number_id: body.whatsapp_phone_number_id || null,
     whatsapp_waba_id: body.whatsapp_waba_id || null,
     connection_status: body.connection_status || 'disconnected',
+    razorpay_key_id: body.razorpay_key_id || null,
+    razorpay_key_secret: body.razorpay_key_secret || null,
+    twilio_account_sid: body.twilio_account_sid || null,
+    twilio_auth_token: body.twilio_auth_token || null,
+    twilio_whatsapp_from: body.twilio_whatsapp_from || null,
+    openai_api_key: body.openai_api_key || null,
+    elevenlabs_api_key: body.elevenlabs_api_key || null,
+    elevenlabs_agent_id: body.elevenlabs_agent_id || null,
   };
 
   const { data: existing } = await supabase

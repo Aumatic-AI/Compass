@@ -4,8 +4,7 @@
   border-right:1px solid var(--line);
   padding:20px 14px;
   display:flex;flex-direction:column;
-  position:sticky;top:0;align-self:flex-start;height:100vh;
-  overflow-y:auto;
+  position:fixed;top:0;left:0;height:100vh;
 }
 .sidebar-logo-row{
   display:flex;align-items:center;gap:10px;
@@ -32,11 +31,11 @@
 .side-nav-item.active{background:var(--maroon);color:#fff;}
 .side-nav-icon-tile{
   width:26px;height:26px;border-radius:7px;flex-shrink:0;
-  background:var(--surface2);
+  background:transparent;
   display:flex;align-items:center;justify-content:center;
   font-size:13px;line-height:1;
 }
-.side-nav-item.active .side-nav-icon-tile{background:rgba(255,255,255,0.18);}
+.side-nav-item.active .side-nav-icon-tile{background:transparent;}
 
 .dash-content{display:flex;flex-direction:column;gap:18px;}
 
@@ -114,7 +113,7 @@ button, .btn-pill, .side-nav-item, .panel-view-all, .thread-back{-webkit-tap-hig
 
 @media (max-width: 900px){
   .dash-page-bg{flex-direction:column;}
-  .dash-sidebar{width:100%;position:static;height:auto;border-right:none;border-bottom:1px solid var(--line);}
+  .dash-sidebar{width:100%;position:static;left:auto;height:auto;border-right:none;border-bottom:1px solid var(--line);}
   .side-nav{flex-direction:row;flex-wrap:wrap;}
   .thread-msg{max-width:88%;}
 }

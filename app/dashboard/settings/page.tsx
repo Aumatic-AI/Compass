@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 
-type Tab = 'general' | 'whatsapp' | 'automation';
+type Tab = 'general' | 'whatsapp' | 'payments' | 'messaging' | 'ai' | 'automation';
 
 type ClientAccount = {
   id?: string;
@@ -11,6 +11,14 @@ type ClientAccount = {
   whatsapp_phone_number_id: string;
   whatsapp_waba_id: string;
   connection_status: 'connected' | 'disconnected';
+  razorpay_key_id: string;
+  razorpay_key_secret: string;
+  twilio_account_sid: string;
+  twilio_auth_token: string;
+  twilio_whatsapp_from: string;
+  openai_api_key: string;
+  elevenlabs_api_key: string;
+  elevenlabs_agent_id: string;
 };
 
 const EMPTY_ACCOUNT: ClientAccount = {
@@ -19,6 +27,14 @@ const EMPTY_ACCOUNT: ClientAccount = {
   whatsapp_phone_number_id: '',
   whatsapp_waba_id: '',
   connection_status: 'disconnected',
+  razorpay_key_id: '',
+  razorpay_key_secret: '',
+  twilio_account_sid: '',
+  twilio_auth_token: '',
+  twilio_whatsapp_from: '',
+  openai_api_key: '',
+  elevenlabs_api_key: '',
+  elevenlabs_agent_id: '',
 };
 
 export default function SettingsPage() {
@@ -35,7 +51,13 @@ export default function SettingsPage() {
     fetch('/api/settings/whatsapp')
       .then((res) => res.json())
       .then((data) => {
-        if (data.account) setAccount(data.account);
+        if (data.account) {
+          const merged = { ...EMPTY_ACCOUNT, ...data.account };
+          (Object.keys(EMPTY_ACCOUNT) as Array<keyof ClientAccount>).forEach((key) => {
+            if (merged[key] == null) (merged as any)[key] = EMPTY_ACCOUNT[key];
+          });
+          setAccount(merged);
+        }
       })
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -121,6 +143,9 @@ export default function SettingsPage() {
         {[
           { id: 'general' as Tab, label: 'General' },
           { id: 'whatsapp' as Tab, label: 'WhatsApp Connection' },
+          { id: 'payments' as Tab, label: 'Payments (Razorpay)' },
+          { id: 'messaging' as Tab, label: 'Messaging (Twilio)' },
+          { id: 'ai' as Tab, label: 'AI (OpenAI & ElevenLabs)' },
           { id: 'automation' as Tab, label: 'Automation Defaults' },
         ].map((tab) => (
           <button
@@ -266,6 +291,182 @@ export default function SettingsPage() {
             {saveMessage && !testMessage && (
               <span className="footnote">{saveMessage}</span>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* PAYMENTS (RAZORPAY) TAB */}
+      {activeTab === 'payments' && (
+        <div style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 12, padding: 24 }}>
+          <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink)', margin: 0 }}>
+            Razorpay Credentials
+          </h3>
+          <p className="footnote" style={{ margin: '4px 0 20px' }}>
+            Used to generate payment links for this client's orders.
+          </p>
+
+          {[
+            { key: 'razorpay_key_id' as const, label: 'KEY ID', type: 'text' },
+            { key: 'razorpay_key_secret' as const, label: 'KEY SECRET', type: 'password' },
+          ].map((field) => (
+            <div key={field.key} style={{ marginBottom: 16 }}>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--ink-soft)', marginBottom: 6 }}>
+                {field.label}
+              </label>
+              <input
+                type={field.type}
+                value={account[field.key]}
+                onChange={(e) => setAccount({ ...account, [field.key]: e.target.value })}
+                placeholder={field.label === 'KEY ID' ? 'rzp_live_...' : 'Paste the key secret from Razorpay'}
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  borderRadius: 8,
+                  border: '1px solid var(--line)',
+                  fontSize: 14,
+                  color: 'var(--ink)',
+                }}
+              />
+            </div>
+          ))}
+
+          <div style={{ display: 'flex', gap: 10, marginTop: 8, alignItems: 'center' }}>
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              style={{
+                padding: '10px 18px',
+                borderRadius: 8,
+                border: 'none',
+                background: 'var(--wa-green)',
+                color: '#fff',
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: 'pointer',
+                opacity: saving ? 0.6 : 1,
+              }}
+            >
+              {saving ? 'Saving…' : 'Save Changes'}
+            </button>
+            {saveMessage && <span className="footnote">{saveMessage}</span>}
+          </div>
+        </div>
+      )}
+
+      {/* MESSAGING (TWILIO) TAB */}
+      {activeTab === 'messaging' && (
+        <div style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 12, padding: 24 }}>
+          <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink)', margin: 0 }}>
+            Twilio Credentials
+          </h3>
+          <p className="footnote" style={{ margin: '4px 0 20px' }}>
+            Sandbox/fallback WhatsApp sending — used before Meta verification is complete.
+          </p>
+
+          {[
+            { key: 'twilio_account_sid' as const, label: 'ACCOUNT SID', type: 'text' },
+            { key: 'twilio_auth_token' as const, label: 'AUTH TOKEN', type: 'password' },
+            { key: 'twilio_whatsapp_from' as const, label: 'WHATSAPP FROM NUMBER', type: 'text' },
+          ].map((field) => (
+            <div key={field.key} style={{ marginBottom: 16 }}>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--ink-soft)', marginBottom: 6 }}>
+                {field.label}
+              </label>
+              <input
+                type={field.type}
+                value={account[field.key]}
+                onChange={(e) => setAccount({ ...account, [field.key]: e.target.value })}
+                placeholder={field.label === 'WHATSAPP FROM NUMBER' ? '+14155238886' : 'From console.twilio.com'}
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  borderRadius: 8,
+                  border: '1px solid var(--line)',
+                  fontSize: 14,
+                  color: 'var(--ink)',
+                }}
+              />
+            </div>
+          ))}
+
+          <div style={{ display: 'flex', gap: 10, marginTop: 8, alignItems: 'center' }}>
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              style={{
+                padding: '10px 18px',
+                borderRadius: 8,
+                border: 'none',
+                background: 'var(--wa-green)',
+                color: '#fff',
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: 'pointer',
+                opacity: saving ? 0.6 : 1,
+              }}
+            >
+              {saving ? 'Saving…' : 'Save Changes'}
+            </button>
+            {saveMessage && <span className="footnote">{saveMessage}</span>}
+          </div>
+        </div>
+      )}
+
+      {/* AI TAB */}
+      {activeTab === 'ai' && (
+        <div style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 12, padding: 24 }}>
+          <h3 style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink)', margin: 0 }}>
+            AI Credentials
+          </h3>
+          <p className="footnote" style={{ margin: '4px 0 20px' }}>
+            OpenAI powers the WhatsApp text agent; ElevenLabs powers the voice agent and its knowledge base.
+          </p>
+
+          {[
+            { key: 'openai_api_key' as const, label: 'OPENAI API KEY', type: 'password', placeholder: 'sk-...' },
+            { key: 'elevenlabs_api_key' as const, label: 'ELEVENLABS API KEY', type: 'password', placeholder: 'From elevenlabs.io settings' },
+            { key: 'elevenlabs_agent_id' as const, label: 'ELEVENLABS AGENT ID', type: 'text', placeholder: 'agent_...' },
+          ].map((field) => (
+            <div key={field.key} style={{ marginBottom: 16 }}>
+              <label style={{ display: 'block', fontSize: 12, fontWeight: 600, color: 'var(--ink-soft)', marginBottom: 6 }}>
+                {field.label}
+              </label>
+              <input
+                type={field.type}
+                value={account[field.key]}
+                onChange={(e) => setAccount({ ...account, [field.key]: e.target.value })}
+                placeholder={field.placeholder}
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  borderRadius: 8,
+                  border: '1px solid var(--line)',
+                  fontSize: 14,
+                  color: 'var(--ink)',
+                }}
+              />
+            </div>
+          ))}
+
+          <div style={{ display: 'flex', gap: 10, marginTop: 8, alignItems: 'center' }}>
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              style={{
+                padding: '10px 18px',
+                borderRadius: 8,
+                border: 'none',
+                background: 'var(--wa-green)',
+                color: '#fff',
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: 'pointer',
+                opacity: saving ? 0.6 : 1,
+              }}
+            >
+              {saving ? 'Saving…' : 'Save Changes'}
+            </button>
+            {saveMessage && <span className="footnote">{saveMessage}</span>}
           </div>
         </div>
       )}

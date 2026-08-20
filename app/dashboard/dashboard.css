@@ -15,7 +15,7 @@
   --shipped-bg:rgba(251,191,36,0.14);
 }
 .dash-page-bg{
-  display:flex;min-height:100vh;width:100%;overflow-x:hidden;
+  display:flex;min-height:100vh;width:100%;
   background:var(--cream);font-family:'Inter',sans-serif;color:var(--ink);
 }
 .dash-page-bg *{box-sizing:border-box;}
